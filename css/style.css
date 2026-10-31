@@ -1,0 +1,23 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f7f9f7;
+    color: #253029;
+}
+
+.site-header {
+    text-align: center;
+    padding: 24px 16px;
+    background-color: #e1f0e7;
+}
+
+.container {
+    max-width: 720px;
+    margin: 32px auto;
+    padding: 0 16px;
+}
