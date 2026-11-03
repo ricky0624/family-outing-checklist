@@ -16,13 +16,109 @@
     </header>
 
     <main class="container">
-        <section>
+        <section id="my-checklist-section">
             <h2>我的清單</h2>
 
             <p id="status-message">目前還沒有清單</p>
+            <ul id="checklist-list"></ul>
 
             <button type="button" id="add-list-btn">
                 新增清單
+            </button>
+        </section>
+
+        <section id="select-create-mode-section" hidden>
+            <h2>新增清單</h2>
+            <p>步驟 1 / 2：選擇建立方式</p>
+
+            <fieldset>
+                <legend>建立方式</legend>
+
+                <label>
+                    <input type="radio" name="create-mode" value="blank" checked>
+                    空白清單
+                </label>
+
+                <label>
+                    <input type="radio" name="create-mode" value="template">
+                    使用預設範本
+                </label>
+            </fieldset>
+
+            <div id="template-options" hidden>
+                <label for="template-type">選擇範本</label>
+
+                <select id="template-type">
+                    <option value="park">公園</option>
+                    <option value="restaurant">餐廳</option>
+                    <option value="travel">過夜旅行</option>
+                </select>
+            </div>
+
+            <button type="button" id="cancel-mode-btn">取消</button>
+            <button type="button" id="next-step-btn">下一步</button>
+        </section>
+
+        <section id="create-checklist-section" hidden>
+            <h2>新增清單</h2>
+
+            <form id="create-checklist-form">
+                <label for="checklist-name">清單名稱</label>
+                <input
+                    type="text"
+                    id="checklist-name"
+                    name="checklist-name"
+                    placeholder="請輸入清單名稱"
+                >
+
+                <p id="name-error" hidden>請輸入清單名稱</p>
+
+                <button type="button" id="back-step-btn">
+                    上一步
+                </button>
+
+                <button type="button" id="cancel-create-btn">
+                    取消
+                </button>
+
+                <button type="submit">
+                    建立清單
+                </button>
+            </form>
+        </section>
+
+        <section id="checklist-detail-section" hidden>
+            <button type="button" id="back-to-list-btn">
+                返回我的清單
+            </button>
+
+            <h2 id="detail-title"></h2>
+            <p id="detail-progress">已完成 0 / 0 項</p>
+
+            <ul id="detail-items"></ul>
+
+            <p id="detail-empty-message" hidden>
+                目前沒有任何物品
+            </p>
+
+            <form id="add-item-form">
+                <label for="new-item-name">新增物品</label>
+
+                <input
+                    type="text"
+                    id="new-item-name"
+                    placeholder="請輸入物品名稱"
+                >
+
+                <p id="item-name-error" hidden>
+                    請輸入物品名稱
+                </p>
+
+                <button type="submit">新增物品</button>
+            </form>
+
+            <button type="button" id="reset-items-btn">
+                開始新一次準備
             </button>
         </section>
     </main>
