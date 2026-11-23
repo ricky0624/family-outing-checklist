@@ -21,6 +21,8 @@
     </header>
 
     <main class="container">
+        <p id="invite-status" role="status" hidden></p>
+
         <!-- 使用者註冊與登入 -->
         <section id="auth-section" hidden>
             <h2>親子出門小幫手</h2>
@@ -167,6 +169,44 @@
                 </button>
 
                 <h2 id="detail-title"></h2>
+                
+                <!-- 分享清單功能 -->
+                <div id="share-section" hidden>
+                    <h3>分享清單</h3>
+
+                    <button type="button" id="create-invite-btn">
+                        產生分享連結
+                    </button>
+
+                    <div id="share-result" hidden>
+                        <input
+                            type="text"
+                            id="share-link-input"
+                            aria-label="分享連結"
+                            readonly
+                        >
+
+                        <button type="button" id="copy-share-link-btn">
+                            複製連結
+                        </button>
+                    </div>
+
+                    <p id="share-message" role="status"></p>
+
+                    <!-- 邀請管理 -->
+                    <div id="invitation-management">
+                        <button type="button" id="show-invitations-btn">
+                            查看邀請紀錄
+                        </button>
+
+                        <div id="invitation-history" hidden>
+                            <p id="invitation-history-message" role="status"></p>
+                            <ul id="invitation-history-list"></ul>
+                        </div>
+                    </div>
+
+                </div>
+
                 <p id="detail-progress">已完成 0 / 0 項</p>
 
                 <ul id="detail-items"></ul>

@@ -202,3 +202,80 @@ async function resetChecklistItemsInDB(checklistId) {
     return data;
 }
 
+
+async function createChecklistInvitationInDB(checklistId) {
+
+    const { data, error } = await window.supabaseClient
+        .rpc("create_checklist_invitation", {
+            p_checklist_id: checklistId
+        });
+
+    if (error) {
+        throw error;
+    }
+
+    if (!data || typeof data !== "string") {
+        throw new Error("沒有取得邀請 Token");
+    }
+
+    return data;
+}
+
+
+async function acceptChecklistInvitationInDB(token) {
+
+    const { data, error } = await window.supabaseClient
+        .rpc("accept_checklist_invitation", {
+            p_token: token
+        });
+
+    if (error) {
+        throw error;
+    }
+
+    if (!data) {
+        throw new Error("接受邀請失敗，沒有取得清單 ID");
+    }
+
+    return data;
+}
+
+
+async function listChecklistInvitationsFromDB(checklistId) {
+
+    const { data, error } = await window.supabaseClient
+        .rpc("list_checklist_invitations", {
+            p_checklist_id: checklistId
+        });
+
+    if (error) {
+        throw error;
+    }
+
+    if (!Array.isArray(data)) {
+        throw new Error("邀請紀錄格式不正確");
+    }
+
+    return data;
+}
+
+
+async function revokeChecklistInvitationInDB(invitationId) {
+
+    const { data, error } = await window.supabaseClient
+        .rpc("revoke_checklist_invitation", {
+            p_invitation_id: invitationId
+        });
+
+    if (error) {
+        throw error;
+    }
+
+    if (data !== true) {
+        throw new Error(
+            "邀請撤銷失敗，請確認邀請狀態或操作權限"
+        );
+    }
+
+    return true;
+}

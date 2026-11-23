@@ -27,6 +27,26 @@ const itemNameInput = document.querySelector("#new-item-name");
 const errorMsg_item = document.querySelector("#item-name-error");
 const resetItemsBtn = document.querySelector("#reset-items-btn");
 
+const shareSection = document.querySelector("#share-section");
+const createInviteBtn = document.querySelector("#create-invite-btn");
+const shareResult = document.querySelector("#share-result");
+const shareLinkInput = document.querySelector("#share-link-input");
+const copyShareLinkBtn = document.querySelector("#copy-share-link-btn");
+const shareMessage = document.querySelector("#share-message");
+
+const showInvitationsBtn = document.querySelector("#show-invitations-btn");
+const invitationHistory = document.querySelector("#invitation-history");
+const invitationHistoryMessage = document.querySelector("#invitation-history-message");
+const invitationHistoryList = document.querySelector("#invitation-history-list");
+
+const inviteStatus = document.querySelector("#invite-status");
+
+const PENDING_INVITE_KEY = "pendingChecklistInvite";
+
+// 取得網址中的 #invite=...
+const hashParams = new URLSearchParams(
+    window.location.hash.substring(1)
+);
 
 const checkLists = [];
 
@@ -45,7 +65,37 @@ const templateNames = {
 let activeChecklistId = null;
 let loadedChecklistUserId = null;
 let checklistLoadVersion = 0;
+let shareRenderedChecklistId = null;
+let inviteProcessing = false;
 //=====================
+
+if (hashParams.has("invite")) {
+    const token = hashParams.get("invite");
+
+    if (token && /^[0-9a-f]{64}$/.test(token)) {
+
+        // 暫存邀請 Token
+        sessionStorage.setItem(PENDING_INVITE_KEY, token);
+
+        inviteStatus.textContent =
+            "已收到分享邀請，請登入後加入清單。";
+
+    } else {
+        sessionStorage.removeItem(PENDING_INVITE_KEY);
+
+        inviteStatus.textContent =
+            "邀請連結格式不正確。";
+    }
+
+    inviteStatus.hidden = false;
+
+    // 將 Token 從網址列移除
+    history.replaceState(
+        history.state,
+        "",
+        window.location.pathname + window.location.search
+    );
+}
 
 window.supabaseClient.auth.onAuthStateChange((event, session) => {
 
@@ -75,12 +125,20 @@ window.supabaseClient.auth.onAuthStateChange((event, session) => {
         return;
     }
 
-    // 將資料庫查詢排到 Auth callback 結束之後
-    setTimeout(() => {
-        loadChecklistsFromDB(version);
+    setTimeout(async () => {
+
+        // 1. 先載入目前使用者的清單
+        await loadChecklistsFromDB(version);
+
+        if (version !== checklistLoadVersion) {
+            return;
+        }
+
+        // 2. 如果有尚未處理的邀請，自動接受
+        await processPendingInvitation(version);
+
     }, 0);
 });
-
 
 //====== 我的清單頁 Start ======
 //renderChecklists(checkLists);
@@ -373,6 +431,120 @@ resetItemsBtn.addEventListener("click", async () => {
     }
 });
 
+
+createInviteBtn.addEventListener("click", async () => {
+
+    const currentChecklist = checkLists.find(
+        checklist => checklist.id === activeChecklistId
+    );
+
+    if (!currentChecklist) {
+        alert("找不到目前的清單");
+        return;
+    }
+
+    // 前端權限檢查
+    if (currentChecklist.owner_id !== loadedChecklistUserId) {
+        alert("只有清單建立者可以產生邀請");
+        return;
+    }
+
+    createInviteBtn.disabled = true;
+    shareMessage.textContent = "正在產生分享連結...";
+
+    try {
+        // 1. 呼叫 Supabase 建立邀請
+        const token = await createChecklistInvitationInDB(
+            currentChecklist.id
+        );
+
+        // 2. 產生分享網址
+        const inviteUrl = new URL(
+            window.location.pathname,
+            window.location.origin
+        );
+
+        inviteUrl.hash = "invite=" + encodeURIComponent(token);
+
+        // 如果使用者已切換到其他清單，就不顯示舊連結
+        if (activeChecklistId !== currentChecklist.id) {
+            return;
+        }
+
+        // 3. 顯示分享連結
+        shareLinkInput.value = inviteUrl.toString();
+        shareResult.hidden = false;
+
+        // 邀請紀錄已變動，清除舊的顯示結果
+        invitationHistory.hidden = true;
+        invitationHistoryList.replaceChildren();
+        invitationHistoryMessage.textContent = "";
+
+        shareMessage.textContent =
+            "邀請連結已建立，請複製後傳給家人。";
+
+    } catch (error) {
+        console.error("建立邀請失敗：", error.message);
+
+        shareResult.hidden = true;
+        shareLinkInput.value = "";
+
+        shareMessage.textContent =
+            "建立邀請失敗：" + error.message;
+
+    } finally {
+        createInviteBtn.disabled = false;
+    }
+});
+
+copyShareLinkBtn.addEventListener("click", async () => {
+
+    const link = shareLinkInput.value;
+
+    if (!link) {
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(link);
+
+        shareMessage.textContent = "分享連結已複製！";
+
+    } catch (error) {
+        console.error("複製失敗：", error.message);
+
+        // 若瀏覽器禁止自動複製，可手動 Ctrl+C
+        shareLinkInput.focus();
+        shareLinkInput.select();
+
+        shareMessage.textContent =
+            "無法自動複製，請按 Ctrl+C 複製連結";
+    }
+});
+
+showInvitationsBtn.addEventListener("click", async () => {
+
+    const currentChecklist = checkLists.find(
+        checklist => checklist.id === activeChecklistId
+    );
+
+    if (!currentChecklist) {
+        alert("找不到目前的清單");
+        return;
+    }
+
+    // 只有 Owner 可以查看邀請紀錄
+    if (
+        currentChecklist.owner_id !== loadedChecklistUserId
+    ) {
+        alert("只有清單建立者可以查看邀請紀錄");
+        return;
+    }
+
+    await loadInvitationHistory(currentChecklist.id);
+});
+
+
 //====== 詳細清單頁 End ========
 
 function renderChecklists(lists) {
@@ -463,6 +635,29 @@ function renderChecklists(lists) {
 function renderChecklistDetail(checklist) {
 
     detailTitle.textContent = checklist.name;
+    
+    // 切換到不同清單時，清除上一份清單的分享連結
+    if (shareRenderedChecklistId !== checklist.id) {
+        shareRenderedChecklistId = checklist.id;
+
+        // 清除上一份清單的分享連結
+        shareResult.hidden = true;
+        shareLinkInput.value = "";
+        shareMessage.textContent = "";
+
+        // 清除上一份清單的邀請紀錄
+        invitationHistory.hidden = true;
+        invitationHistoryList.replaceChildren();
+        invitationHistoryMessage.textContent = "";
+    }
+
+
+    // 只有 Owner 才能看到分享按鈕
+    const isOwner =
+        checklist.owner_id === loadedChecklistUserId;
+
+    shareSection.hidden = !isOwner;
+
     detailItems.replaceChildren();
 
     const totalCount = checklist.items.length;
@@ -639,4 +834,256 @@ async function loadChecklistsFromDB(version) {
     renderChecklists(checkLists);
 
     console.log("從 Supabase 載入完成：", checkLists);
+}
+
+
+async function processPendingInvitation(version) {
+
+    const token = sessionStorage.getItem(PENDING_INVITE_KEY);
+
+    if (!token || inviteProcessing) {
+        return;
+    }
+
+    inviteProcessing = true;
+    inviteStatus.hidden = false;
+    inviteStatus.textContent = "正在驗證分享邀請...";
+
+    try {
+        // 1. 呼叫後端接受邀請
+        const checklistId =
+            await acceptChecklistInvitationInDB(token);
+
+        // 登入身分已變動時，不再更新舊畫面
+        if (version !== checklistLoadVersion) {
+            return;
+        }
+
+        // 2. 清除已使用的暫存 Token
+        sessionStorage.removeItem(PENDING_INVITE_KEY);
+
+        // 3. 重新載入清單，取得剛加入的共享清單
+        await loadChecklistsFromDB(version);
+
+        if (version !== checklistLoadVersion) {
+            return;
+        }
+
+        // 4. 確認清單已經出現在前端陣列中
+        const joinedChecklist = checkLists.find(
+            checklist => checklist.id === checklistId
+        );
+
+        if (joinedChecklist) {
+
+            // 1. 記錄目前正在查看的清單
+            activeChecklistId = joinedChecklist.id;
+
+            // 2. 隱藏其他清單操作畫面
+            myList.hidden = true;
+
+            document.querySelector(
+                "#select-create-mode-section"
+            ).hidden = true;
+
+            document.querySelector(
+                "#create-checklist-section"
+            ).hidden = true;
+
+            // 3. 顯示詳細頁
+            detailList.hidden = false;
+
+            // 4. 繪製剛加入的共享清單
+            renderChecklistDetail(joinedChecklist);
+
+            // 5. 顯示成功訊息
+            inviteStatus.hidden = false;
+            inviteStatus.textContent =
+                "成功加入共享清單！";
+
+        } else {
+
+            inviteStatus.hidden = false;
+            inviteStatus.textContent =
+                "邀請已接受，但清單載入失敗，請重新整理網頁。";
+        }
+
+
+    } catch (error) {
+        if (version !== checklistLoadVersion) {
+            return;
+        }
+
+        console.error("接受邀請失敗：", error.message);
+
+        sessionStorage.removeItem(PENDING_INVITE_KEY);
+
+        inviteStatus.textContent =
+            "接受邀請失敗：" + error.message;
+
+    } finally {
+        inviteProcessing = false;
+    }
+}
+
+
+async function loadInvitationHistory(checklistId) {
+
+    showInvitationsBtn.disabled = true;
+    invitationHistory.hidden = false;
+
+    invitationHistoryMessage.textContent =
+        "正在讀取邀請紀錄...";
+
+    invitationHistoryList.replaceChildren();
+
+    try {
+        // 1. 向 Supabase 取得邀請紀錄
+        const invitations =
+            await listChecklistInvitationsFromDB(checklistId);
+
+        // 讀取期間如果切換清單，就不要顯示舊資料
+        if (
+            activeChecklistId !== checklistId ||
+            shareSection.hidden
+        ) {
+            return;
+        }
+
+        // 2. 沒有任何邀請
+        if (invitations.length === 0) {
+            invitationHistoryMessage.textContent =
+                "目前沒有邀請紀錄";
+            return;
+        }
+
+        invitationHistoryMessage.textContent = "";
+
+        // 3. 顯示每一筆邀請
+        invitations.forEach(invitation => {
+
+            const li = document.createElement("li");
+            const info = document.createElement("div");
+
+            const createdAt = new Date(
+                invitation.created_at
+            ).toLocaleString("zh-TW", {
+                timeZone: "Asia/Taipei"
+            });
+
+            const expiresAt = new Date(
+                invitation.expires_at
+            ).toLocaleString("zh-TW", {
+                timeZone: "Asia/Taipei"
+            });
+
+            const expiresTime = Date.parse(
+                invitation.expires_at
+            );
+
+            const isExpired =
+                Number.isFinite(expiresTime) &&
+                expiresTime <= Date.now();
+
+            // 依照資料庫欄位判斷顯示狀態
+            let status = "有效";
+
+            if (invitation.revoked_at) {
+                status = "已撤銷";
+            } else if (invitation.used_at) {
+                status = "已使用";
+            } else if (!Number.isFinite(expiresTime)) {
+                status = "狀態未知";
+            } else if (isExpired) {
+                status = "已過期";
+            }
+
+            info.textContent =
+                `建立：${createdAt}｜` +
+                `到期：${expiresAt}｜` +
+                `狀態：${status}`;
+
+            li.appendChild(info);
+
+            // 4. 只有尚未使用、未撤銷且未過期的邀請
+            //    才顯示撤銷按鈕
+            const canRevoke =
+                !invitation.used_at &&
+                !invitation.revoked_at &&
+                Number.isFinite(expiresTime) &&
+                !isExpired;
+
+            if (canRevoke) {
+
+                const revokeBtn =
+                    document.createElement("button");
+
+                revokeBtn.type = "button";
+                revokeBtn.textContent = "撤銷";
+
+                revokeBtn.addEventListener("click", async () => {
+
+                    const confirmed = confirm(
+                        "確定要撤銷這筆邀請嗎？"
+                    );
+
+                    if (!confirmed) {
+                        return;
+                    }
+
+                    revokeBtn.disabled = true;
+
+                    try {
+                        // 撤銷指定邀請
+                        await revokeChecklistInvitationInDB(
+                            invitation.invitation_id
+                        );
+
+                        // 如果已切換清單，不更新原本畫面
+                        if (
+                            activeChecklistId !== checklistId ||
+                            shareSection.hidden
+                        ) {
+                            return;
+                        }
+
+                        // 撤銷成功後重新查詢邀請紀錄
+                        await loadInvitationHistory(checklistId);
+
+                    } catch (error) {
+                        console.error("撤銷邀請失敗：", error);
+
+                        if (
+                            activeChecklistId === checklistId &&
+                            !shareSection.hidden
+                        ) {
+                            invitationHistoryMessage.textContent =
+                                "撤銷失敗：" + error.message;
+                        }
+
+                    } finally {
+                        revokeBtn.disabled = false;
+                    }
+                });
+
+                li.appendChild(revokeBtn);
+            }
+
+            invitationHistoryList.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error("讀取邀請紀錄失敗：", error);
+
+        if (
+            activeChecklistId === checklistId &&
+            !shareSection.hidden
+        ) {
+            invitationHistoryMessage.textContent =
+                "讀取失敗：" + error.message;
+        }
+
+    } finally {
+        showInvitationsBtn.disabled = false;
+    }
 }
