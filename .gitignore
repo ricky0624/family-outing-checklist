@@ -1,5 +1,11 @@
+# Node.js 套件
 node_modules/
+
+# Vite 建置與快取
 dist/
+.vite/
+
+# 環境變數
 .env
 .env.*
 !.env.example
