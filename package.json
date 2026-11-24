@@ -1,0 +1,43 @@
+{
+  "devDependencies": {
+    "vite": "^8.3.8"
+  },
+  "name": "family-outing-checklist",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "detect-libc": "^2.1.2",
+    "fdir": "^6.5.0",
+    "lightningcss": "^1.33.0",
+    "lightningcss-win32-x64-msvc": "^1.33.0",
+    "nanoid": "^3.3.20",
+    "picocolors": "^1.1.1",
+    "picomatch": "^4.0.7",
+    "postcss": "^8.5.33",
+    "rolldown": "^1.2.19",
+    "source-map-js": "^1.2.4",
+    "tinyglobby": "^0.2.17"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ricky0624/family-outing-checklist.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ricky0624/family-outing-checklist/issues"
+  },
+  "homepage": "https://github.com/ricky0624/family-outing-checklist#readme"
+}

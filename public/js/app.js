@@ -27,6 +27,9 @@ const itemNameInput = document.querySelector("#new-item-name");
 const errorMsg_item = document.querySelector("#item-name-error");
 const resetItemsBtn = document.querySelector("#reset-items-btn");
 
+const completionDialog =
+    document.querySelector("#completion-dialog");
+
 const checkLists = [];
 
 const checklistTemplates = {
@@ -44,6 +47,7 @@ const templateNames = {
 let activeChecklistId = null;
 let loadedChecklistUserId = null;
 let checklistLoadVersion = 0;
+let completionToastTimer = null;
 //=====================
 
 window.supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -54,6 +58,10 @@ window.supabaseClient.auth.onAuthStateChange((event, session) => {
         event !== "SIGNED_OUT"
     ) {
         return;
+    }
+
+    if (completionDialog.open) {
+        completionDialog.close();
     }
 
     const userId = session?.user?.id ?? null;
@@ -126,27 +134,46 @@ cancelBtn_mode.addEventListener("click", ()=>{
 });
 
 //下一步鈕
-nextBtn.addEventListener("click", ()=>{
+nextBtn.addEventListener("click", () => {
+
+    // 每次進入建立清單頁，都清除舊錯誤
+    clearChecklistNameError();
+
     selectListMode.hidden = true;
     createList.hidden = false;
-    listNameInput.focus();
-    const selectedMode = document.querySelector('input[name="create-mode"]:checked').value;
-    if(selectedMode==="template"){
-        const templateType = document.querySelector("#template-type").value;
+
+    const selectedMode = document.querySelector(
+        'input[name="create-mode"]:checked'
+    ).value;
+
+    if (selectedMode === "template") {
+
+        const templateType =
+            document.querySelector("#template-type").value;
+
         listNameInput.value = transChinese(templateType);
-    }else{
+
+    } else {
+
         listNameInput.value = "";
+
     }
+
+    listNameInput.focus();
 });
+
 //====== 新增清單模式頁 End ======
 
 //====== 建立清單頁 Start ======
 listNameInput.addEventListener("input", () => {
-    errorMsg_list.hidden = true;
+    clearChecklistNameError();
 });
 
 //上一步鈕
 backBtn.addEventListener("click", ()=>{
+
+    clearChecklistNameError();
+
     selectListMode.hidden = false;
     createList.hidden = true;
 });
@@ -385,6 +412,10 @@ resetItemsBtn.addEventListener("click", async () => {
     }
 });
 
+completionDialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+});
+
 //====== 詳細清單頁 End ========
 
 function renderChecklists(lists) {
@@ -423,7 +454,10 @@ function renderChecklists(lists) {
 
                 const deleteBtn = document.createElement("button");
                 deleteBtn.type = "button";
-                deleteBtn.textContent = "刪除";
+                setDeleteButtonIcon(
+                    deleteBtn,
+                    `刪除清單：${checklist.name}`
+                );
 
                 deleteBtn.addEventListener("click", async () => {
 
@@ -502,7 +536,10 @@ function renderChecklistDetail(checklist) {
 
         const deleteBtn = document.createElement("button");
         deleteBtn.type = "button";
-        deleteBtn.textContent = "刪除";
+        setDeleteButtonIcon(
+            deleteBtn,
+            `刪除物品：${item.name}`
+        );
 
         // 刪除物品
         deleteBtn.addEventListener("click", async () => {
@@ -554,35 +591,69 @@ function renderChecklistDetail(checklist) {
             checkbox.disabled = true;
             deleteBtn.disabled = true;
 
+            // 不讓垃圾桶按鈕因 disabled 而變淡
+            deleteBtn.classList.add("no-disabled-fade");
+
             try {
-                // 先更新資料庫
                 const updatedItem =
                     await updateChecklistItemCompletedInDB(
                         item.id,
                         newCompleted
                     );
 
-                // 成功後才更新記憶體資料
-                item.completed = updatedItem.completed;
+                // 記錄修改前的完成數量
+                const completedBefore = checklist.items.filter(
+                    data => data.completed
+                ).length;
 
-                if (activeChecklistId === checklist.id &&
-                    !detailList.hidden) {
-                    renderChecklistDetail(checklist);
+                // Supabase 更新成功後才修改記憶體
+                item.completed = updatedItem.completed;
+                checkbox.checked = item.completed;
+
+                // 確保仍在查看同一份清單
+                if (
+                    activeChecklistId === checklist.id &&
+                    !detailList.hidden
+                ) {
+
+                    const totalCount = checklist.items.length;
+
+                    const completedCount = checklist.items.filter(
+                        data => data.completed
+                    ).length;
+
+                    // 只更新進度文字，不重新渲染物品列表
+                    detailProgress.textContent =
+                        `已完成 ${completedCount} / ${totalCount} 項`;
+
+                    // 從未全部完成，變成全部完成
+                    if (
+                        totalCount > 0 &&
+                        completedBefore < totalCount &&
+                        completedCount === totalCount
+                    ) {
+                        showCompletionDialog();
+                    }
                 }
 
             } catch (error) {
+
                 console.error("更新物品失敗：", error);
 
-                // 還原 Checkbox 狀態
+                // 失敗時還原 Checkbox
                 checkbox.checked = item.completed;
 
                 alert("更新物品失敗：" + error.message);
 
             } finally {
+
                 checkbox.disabled = false;
                 deleteBtn.disabled = false;
+                deleteBtn.classList.remove("no-disabled-fade");
+
             }
         });
+
 
         nameLabel.append(checkbox, item.name);
         nameLi.appendChild(nameLabel);
@@ -662,4 +733,57 @@ async function loadChecklistsFromDB(version) {
     renderChecklists(checkLists);
 
     console.log("從 Supabase 載入完成：", checkLists);
+}
+
+
+function setDeleteButtonIcon(button, label) {
+
+    button.classList.add("delete-icon-btn");
+
+    // 讓讀屏軟體知道按鈕的用途
+    button.setAttribute("aria-label", label);
+
+    // 滑鼠停留時顯示提示文字
+    button.title = label;
+
+    // 使用固定的 SVG 圖示
+    button.innerHTML = `
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
+            <path d="M3 6h18"/>
+            <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6"/>
+            <path d="M14 11v6"/>
+        </svg>
+    `;
+}
+
+
+function clearChecklistNameError() {
+
+    errorMsg_list.textContent = "請輸入清單名稱";
+    errorMsg_list.hidden = true;
+
+}
+
+function showCompletionDialog() {
+
+    // 如果視窗已經開啟，就不要重複開啟
+    if (completionDialog.open) {
+        return;
+    }
+
+    completionDialog.showModal();
 }

@@ -6,28 +6,59 @@
 
     <title>親子出門小幫手</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Huninn&display=swap"
+        rel="stylesheet"
+    >
+
     <link rel="stylesheet" href="./css/style.css">
     
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script defer src="js/supabase-client.js"></script>
-    <script defer src="js/auth.js"></script>
-    <script defer src="js/checklist-api.js"></script>
-    <script defer src="js/app.js"></script>
+    <script defer src="/js/supabase-client.js"></script>
+    <script defer src="/js/auth.js"></script>
+    <script defer src="/js/checklist-api.js"></script>
+    <script defer src="/js/app.js"></script>
 </head>
 <body>
     <header class="site-header">
         <h1>親子出門小幫手</h1>
-        <p>一起準備，出門更輕鬆</p>
+        <p>輕鬆整理出門物品</p>
     </header>
 
     <main class="container">
 
         <!-- 使用者註冊與登入 -->
         <section id="auth-section" hidden>
-            <h2>親子出門小幫手</h2>
+            <div class="auth-welcome">
+                <h2>歡迎回來！</h2>
+                <p>登入帳號，繼續整理你的出門清單</p>
+            </div>
 
-            <h3>登入</h3>
+            <div class="auth-tabs">
+                <button
+                    type="button"
+                    id="show-login-tab"
+                    class="auth-tab is-active"
+                    aria-pressed="true"
+                >
+                    登入
+                </button>
+
+                <button
+                    type="button"
+                    id="show-signup-tab"
+                    class="auth-tab"
+                    aria-pressed="false"
+                >
+                    註冊
+                </button>
+            </div>
+
             <form id="login-form">
+                <label for="login-email">電子郵件</label>
                 <input
                     type="email"
                     id="login-email"
@@ -36,6 +67,7 @@
                     required
                 >
 
+                <label for="login-password">密碼</label>
                 <input
                     type="password"
                     id="login-password"
@@ -47,8 +79,8 @@
                 <button type="submit">登入</button>
             </form>
 
-            <h3>註冊</h3>
-            <form id="signup-form">
+            <form id="signup-form" hidden>
+                <label for="signup-email">電子郵件</label>
                 <input
                     type="email"
                     id="signup-email"
@@ -57,6 +89,7 @@
                     required
                 >
 
+                <label for="signup-password">設定密碼</label>
                 <input
                     type="password"
                     id="signup-password"
@@ -104,7 +137,15 @@
 
             <section id="select-create-mode-section" hidden>
                 <h2>新增清單</h2>
-                <p>步驟 1 / 2：選擇建立方式</p>
+                <div class="step-info">
+                    <span>步驟 1 / 2</span>
+                    <span>選擇建立方式</span>
+                </div>
+
+                <div class="step-progress">
+                    <span class="step-active"></span>
+                    <span></span>
+                </div>
 
                 <fieldset>
                     <legend>建立方式</legend>
@@ -130,15 +171,41 @@
                     </select>
                 </div>
 
-                <button type="button" id="cancel-mode-btn">取消</button>
-                <button type="button" id="next-step-btn">下一步</button>
+                <div class="form-actions">
+                    <button type="button" id="cancel-mode-btn">
+                        取消
+                    </button>
+
+                    <button type="button" id="next-step-btn">
+                        下一步
+                    </button>
+                </div>
+
             </section>
 
             <section id="create-checklist-section" hidden>
+
+                <!-- 左上角返回按鈕 -->
+                <button type="button" id="back-step-btn">
+                    <span class="back-arrow" aria-hidden="true">←</span>
+                    <span>上一步</span>
+                </button>
+
                 <h2>新增清單</h2>
+                <div class="step-info">
+                    <span>步驟 2 / 2</span>
+                    <span>輸入清單名稱</span>
+                </div>
+
+                <div class="step-progress">
+                    <span class="step-active"></span>
+                    <span class="step-active"></span>
+                </div>
 
                 <form id="create-checklist-form">
+
                     <label for="checklist-name">清單名稱</label>
+
                     <input
                         type="text"
                         id="checklist-name"
@@ -146,21 +213,25 @@
                         placeholder="請輸入清單名稱"
                     >
 
-                    <p id="name-error" hidden>請輸入清單名稱</p>
+                    <p id="name-error" hidden>
+                        請輸入清單名稱
+                    </p>
 
-                    <button type="button" id="back-step-btn">
-                        上一步
-                    </button>
+                    <div class="form-actions">
 
-                    <button type="button" id="cancel-create-btn">
-                        取消
-                    </button>
+                        <button type="button" id="cancel-create-btn">
+                            取消
+                        </button>
 
-                    <button type="submit">
-                        建立清單
-                    </button>
+                        <button type="submit">
+                            建立清單
+                        </button>
+
+                    </div>
                 </form>
+
             </section>
+
 
             <section id="checklist-detail-section" hidden>
                 <button type="button" id="back-to-list-btn">
@@ -190,13 +261,47 @@
                         請輸入物品名稱
                     </p>
 
-                    <button type="submit">新增物品</button>
+                    <button type="submit">新增</button>
                 </form>
 
-                <button type="button" id="reset-items-btn">
-                    開始新一次準備
-                </button>
+                <div class="restart-panel">
+                    <h3>準備下一次出門</h3>
+
+                    <p>
+                        保留所有物品，只清除目前的勾選紀錄。
+                    </p>
+
+                    <button type="button" id="reset-items-btn">
+                        ↻ 開始新一輪準備
+                    </button>
+                </div>
+
             </section>
+
+            <!-- 全部完成通知視窗 -->
+            <dialog
+                id="completion-dialog"
+                aria-labelledby="completion-title"
+                aria-describedby="completion-message"
+            >
+                <div class="completion-content">
+
+                    <h2 id="completion-title">
+                        🎉 全部準備完成！
+                    </h2>
+
+                    <p id="completion-message">
+                        太棒了，可以開心出門囉！
+                    </p>
+
+                    <form method="dialog">
+                        <button type="submit">
+                            確定
+                        </button>
+                    </form>
+
+                </div>
+            </dialog>
 
         </div>
     </main>
