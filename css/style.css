@@ -1,3 +1,26 @@
+/* =========================================================
+   親子出門小幫手｜style.css
+   主題：莫蘭迪咖啡 × 奶油米白 × jf open 粉圓
+   整理範圍：Step 7B-1 ～ 7B-5D
+   ========================================================= */
+
+/* 01. 全域變數與基本設定 ------------------------------- */
+:root {
+    --bg-main: #F7F2EB;
+    --bg-card: #FFFAF5;
+    --bg-soft: #EFE5DA;
+    --bg-input: #FFFCF8;
+
+    --text-main: #4E4038;
+    --text-secondary: #76675E;
+
+    --color-primary: #806353;
+    --color-primary-hover: #674C3F;
+    --color-border: #D8C9B9;
+
+    --color-danger: #9B554E;
+    --bg-danger: #F6E8E5;
+}
 
 * {
     box-sizing: border-box;
@@ -5,19 +28,620 @@
 
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f7f9f7;
-    color: #253029;
+    font-family: "Huninn", "Microsoft JhengHei", sans-serif;
+    line-height: 1.6;
+    background-color: var(--bg-main);
+    color: var(--text-main);
 }
 
+[hidden] {
+    display: none !important;
+}
+
+/* 02. 網站標題與主要版型 ------------------------------- */
 .site-header {
-    text-align: center;
     padding: 24px 16px;
-    background-color: #e1f0e7;
+    text-align: center;
+    background-color: var(--bg-soft);
+}
+
+.site-header h1 {
+    margin: 0;
+    font-size: 28px;
+    color: var(--text-main);
+}
+
+.site-header p {
+    margin: 8px 0 0;
+    color: var(--text-secondary);
 }
 
 .container {
     max-width: 720px;
     margin: 32px auto;
     padding: 0 16px;
+}
+
+#auth-section,
+#my-checklist-section,
+#select-create-mode-section,
+#create-checklist-section,
+#checklist-detail-section {
+    padding: 24px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+}
+
+/* 03. 共用表單、按鈕與訊息 ------------------------------- */
+#login-form,
+#signup-form,
+#create-checklist-form,
+#add-item-form {
+    display: grid;
+    gap: 12px;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+select {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    color: var(--text-main);
+    background-color: var(--bg-input);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+button {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 16px;
+    color: #FFFFFF;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid #B8917E;
+    outline-offset: 2px;
+}
+
+#login-form label,
+#signup-form label,
+#create-checklist-form label,
+#add-item-form label {
+    font-weight: 600;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.form-actions > button {
+    flex: 1 1 140px;
+}
+
+#cancel-mode-btn,
+#cancel-create-btn,
+#back-to-list-btn {
+    color: var(--text-main);
+    background-color: var(--bg-soft);
+    border: 1px solid var(--color-border);
+}
+
+#cancel-mode-btn:hover:not(:disabled),
+#cancel-create-btn:hover:not(:disabled),
+#back-to-list-btn:hover:not(:disabled) {
+    background-color: #E3D3C4;
+}
+
+#name-error,
+#item-name-error {
+    margin: 0;
+    padding: 10px 12px;
+    color: #A52D2D;
+    background-color: #FFF0F0;
+    border-left: 3px solid #C94B4B;
+    border-radius: 4px;
+    overflow-wrap: anywhere;
+}
+
+/* 04. 登入／註冊頁 ------------------------------------- */
+#auth-section {
+    max-width: 460px;
+    margin: 0 auto;
+}
+
+.auth-welcome {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.auth-welcome h2 {
+    margin: 0 0 8px;
+    font-size: 25px;
+    color: var(--text-main);
+}
+
+.auth-welcome p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.auth-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    padding: 6px;
+    margin-bottom: 24px;
+    background-color: var(--bg-soft);
+    border-radius: 14px;
+}
+
+.auth-tab {
+    min-height: 44px;
+    color: var(--text-secondary);
+    background-color: transparent;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.auth-tab.is-active {
+    color: var(--color-primary);
+    background-color: var(--bg-card);
+    box-shadow: 0 2px 6px rgba(78, 64, 56, 0.12);
+}
+
+.auth-tab:hover:not(:disabled) {
+    color: var(--color-primary);
+    background-color: #E5D8CB;
+}
+
+.auth-tab.is-active:hover:not(:disabled) {
+    background-color: var(--bg-card);
+}
+
+#auth-section form label {
+    display: block;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+#auth-message {
+    overflow-wrap: anywhere;
+}
+
+/* 沒有提示時不保留空白；有訊息時維持適當的間距。 */
+#auth-message:empty {
+    display: none;
+}
+
+#auth-message:not(:empty) {
+    margin: 16px 0 0;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+/* 05. 我的清單與工具列 --------------------------------- */
+#user-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+#current-user-email {
+    overflow-wrap: anywhere;
+}
+
+#checklist-list,
+#detail-items {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0;
+    padding: 0;
+    list-style: none;
+}
+
+#checklist-list li,
+#detail-items li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+}
+
+#checklist-list li > button:first-child {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-main);
+    background-color: var(--bg-soft);
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+#checklist-list li > button:first-child:hover {
+    background-color: #E3D3C4;
+}
+
+#add-list-btn {
+    display: block;
+    width: min(100%, 260px);
+    margin: 24px auto 0;
+}
+
+#status-message,
+#detail-empty-message {
+    margin: 16px 0;
+    padding: 20px 12px;
+    color: var(--text-secondary);
+    background-color: #F8F1E9;
+    border: 1px dashed var(--color-border);
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* 06. 新增清單流程與進度條 ------------------------------- */
+#create-checklist-section h2,
+#select-create-mode-section h2 {
+    margin-top: 0;
+}
+
+#select-create-mode-section fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 16px 0;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+#select-create-mode-section fieldset label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--color-primary);
+}
+
+#template-options {
+    margin: 12px 0;
+}
+
+#template-options label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.step-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 16px 0 10px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.step-info span:first-child {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.step-progress {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 24px;
+}
+
+.step-progress span {
+    height: 7px;
+    background-color: #E7DCD0;
+    border-radius: 999px;
+}
+
+.step-progress .step-active {
+    background-color: var(--color-primary);
+}
+
+/* 左上角「上一步」膠囊按鈕 */
+#back-step-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    width: fit-content;
+    margin-bottom: 16px;
+    padding: 6px 16px 6px 8px;
+    color: var(--color-primary);
+    background-color: #F9F2EA;
+    border: 1px solid #D8C7B8;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+#back-step-btn .back-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background-color: #E8DACC;
+    border-radius: 50%;
+    font-size: 19px;
+    line-height: 1;
+}
+
+#back-step-btn:hover:not(:disabled) {
+    color: var(--color-primary-hover);
+    background-color: #EFE3D7;
+    border-color: #C9B2A1;
+    text-decoration: none;
+}
+
+#back-step-btn:active:not(:disabled) {
+    background-color: #E5D5C6;
+}
+
+#create-checklist-form .form-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+/* 取消舊版「建立清單」按鈕獨佔一整列的設定 */
+#create-checklist-form .form-actions button[type="submit"] {
+    grid-column: auto;
+}
+
+/* 07. 清單詳細頁 --------------------------------------- */
+#back-to-list-btn {
+    margin-bottom: 8px;
+}
+
+#detail-title {
+    margin: 16px 0 12px;
+    overflow-wrap: anywhere;
+}
+
+#detail-progress {
+    display: inline-block;
+    margin: 0 0 16px;
+    padding: 8px 14px;
+    color: var(--text-main);
+    background-color: var(--bg-soft);
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+#detail-items li label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+#detail-items input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+#add-item-form {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #E2E9E3;
+}
+
+/* 垃圾桶圖示：清單及物品共用 */
+#checklist-list li > button.delete-icon-btn,
+#detail-items li > button.delete-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    color: var(--color-danger);
+    background-color: var(--bg-danger);
+    border: 1px solid #E4C9C3;
+    border-radius: 10px;
+}
+
+#checklist-list li > button.delete-icon-btn:hover:not(:disabled),
+#detail-items li > button.delete-icon-btn:hover:not(:disabled) {
+    background-color: #EDD6D1;
+}
+
+.delete-icon-btn svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+}
+
+/* 更新 Checkbox 時不讓旁邊的垃圾桶忽明忽暗 */
+#detail-items .delete-icon-btn.no-disabled-fade:disabled {
+    opacity: 1;
+    cursor: wait;
+}
+
+/* 下一次出門：獨立區塊 */
+.restart-panel {
+    margin-top: 28px;
+    padding: 20px;
+    background-color: var(--bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+}
+
+.restart-panel h3 {
+    margin: 0 0 8px;
+    color: var(--text-main);
+    font-size: 17px;
+}
+
+.restart-panel p {
+    margin: 0 0 16px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+#reset-items-btn {
+    display: block;
+    width: 100%;
+    margin: 0;
+    color: var(--color-primary);
+    background-color: var(--bg-card);
+    border: 1px solid #C9B2A1;
+    font-weight: 600;
+}
+
+#reset-items-btn:hover:not(:disabled) {
+    background-color: #E3D3C4;
+}
+
+/* 08. 全部完成通知 Modal ------------------------------- */
+#completion-dialog {
+    width: min(90%, 380px);
+    max-width: 380px;
+    padding: 28px 24px;
+    color: var(--text-main);
+    background-color: var(--bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+    box-shadow: 0 12px 40px rgba(78, 64, 56, 0.2);
+}
+
+#completion-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.completion-content {
+    text-align: center;
+}
+
+.completion-content h2 {
+    margin: 0 0 16px;
+    color: var(--text-main);
+    font-size: 22px;
+}
+
+.completion-content p {
+    margin-bottom: 24px;
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+.completion-content button {
+    width: 100%;
+    max-width: 220px;
+    color: #FFFFFF;
+    background-color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* 09. 手機與小螢幕 ------------------------------------- */
+@media (max-width: 600px) {
+    .site-header {
+        padding: 20px 12px;
+    }
+
+    .site-header h1 {
+        font-size: 23px;
+    }
+
+    .container {
+        margin: 16px auto;
+        padding: 0 12px;
+    }
+
+    #auth-section,
+    #my-checklist-section,
+    #select-create-mode-section,
+    #create-checklist-section,
+    #checklist-detail-section {
+        padding: 16px;
+    }
+
+    #checklist-list li,
+    #detail-items li {
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .form-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #current-user-email {
+        min-width: 0;
+    }
+
+    #detail-title {
+        font-size: 22px;
+    }
+
+    #detail-progress {
+        font-size: 14px;
+    }
+
+    #back-to-list-btn,
+    #add-item-form button[type="submit"] {
+        width: 100%;
+    }
 }
